@@ -155,11 +155,11 @@
 
           addButton(label);
           storage.add(label);
-          $('#gif-input').val('');
 
         }
 
         giphyApi.search(label);
+        $('#gif-input').val('');
 
       }
 
