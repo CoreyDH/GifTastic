@@ -15,9 +15,9 @@
           return;
         }
 
-        this.query = query;
+        this.query = query || this.query;
         this.limit = limit || $('#gif-limit').val();
-        this.rating = rating || 'pg';
+        this.rating = rating || $('#gif-rating').val();
 
         $.ajax({
           url: this.host,
@@ -38,11 +38,12 @@
 
         for(var i=0; i < response.data.length; i++) {
 
-          li += '<li><img src="'+response.data[i].images.fixed_height_still.url+'" data-still="'+response.data[i].images.fixed_height_still.url+'" data-animated="'+response.data[i].images.fixed_height.url+'" class="gif-image gif-paused" /><p>Rating: '+response.data[i].rating+'</p></li>';
+          li += '<li><div class="panel panel-default pull-left"><div class="panel-body glyphicon gif-paused"><img src="'+response.data[i].images.fixed_height_still.url+'" data-still="'+response.data[i].images.fixed_height_still.url+'" data-animated="'+response.data[i].images.fixed_height.url+'" class="gif-image" /></div><div class="panel-footer">Rating: <span>'+response.data[i].rating+'</span><div class="pull-right"><a href="'+response.data[i].source+'" target="_blank" data-toggle="tooltip" data-placement="top" title="source: '+response.data[i].source+'"><span class="glyphicon glyphicon-link gif-source"></span></a></div></div></div></li>';
 
         }
 
         $output.html(li);
+        $('[data-toggle="tooltip"]').tooltip();
 
       }
     };
@@ -95,14 +96,12 @@
       remove: function(value) {
 
         var index = this.check(value);
-        console.log(this.items, value);
 
         if(index > -1) {
 
 
           this.items.splice(index, 1);
           this.save();
-          console.log(this.items);
 
         } else {
 
@@ -116,7 +115,6 @@
 
         this.reset();
         localStorage.setItem(this.key, JSON.stringify(this.items));
-        console.log(this.items);
 
       },
 
@@ -145,20 +143,32 @@
     giphyApi.init();
     storage.init();
     init();
-    giphyApi.search('cats');
-
 
     // Event Listeners
     $('#gif-add').on('click', function() {
 
       var label = $('#gif-input').val().trim();
 
-      if(label.length > 0 && storage.check(label) === -1) {
+      if(label.length > 0) {
 
-        addButton(label);
-        storage.add(label);
-        $('#gif-input').val('');
+        if(storage.check(label) === -1) {
 
+          addButton(label);
+          storage.add(label);
+          $('#gif-input').val('');
+
+        }
+
+        giphyApi.search(label);
+
+      }
+
+    });
+
+    $('#gif-input').on('keypress', function(e) {
+
+      if(e.which === 13) {
+        $('#gif-add').trigger('click');
       }
 
     });
@@ -178,9 +188,9 @@
 
     });
 
-    $('#gif-output').on('click', 'img', function(event) {
+    $('#gif-output').on('click', '.panel-body', function(event) {
 
-      toggleAnimate(event.target);
+      toggleAnimate($(this).find('img'));
 
     });
 
@@ -189,15 +199,15 @@
       var $gif = $(img);
       var url = '';
 
-      if($gif.hasClass('gif-paused')) {
+      if($gif.parent().hasClass('gif-paused')) {
 
         url = $gif.data('animated');
-        $gif.removeClass('gif-paused');
+        $gif.parent().removeClass('gif-paused');
 
       } else {
 
         url = $gif.data('still');
-        $gif.addClass('gif-paused');
+        $gif.parent().addClass('gif-paused');
 
       }
 
