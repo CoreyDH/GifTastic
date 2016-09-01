@@ -11,7 +11,7 @@
       },
       search: function(query, limit, rating) {
 
-        if(query === undefined) {
+        if(!query) {
           return;
         }
 
